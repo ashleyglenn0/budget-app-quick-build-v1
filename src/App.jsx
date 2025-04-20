@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './styles/App.css'
+import { useState, useEffect } from 'react';
+import './styles/App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [expenses, setExpenses] = useState(() => {
+    const stored = localStorage.getItem("expenses");
+    return stored ? JSON.parse(stored) : [];
+  });
+
+  const [name, setName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+
+  // Save to localStorage whenever expenses change
+  useEffect(() => {
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+  }, [expenses]);
+
+  const addExpense = () => {
+    const expenseObj = {
+      name,
+      amount: parseFloat(amount), // sanitize number input
+      category,
+      id: crypto.randomUUID(), // add ID for possible deletion later
+    };
+
+    setExpenses(prev => [...prev, expenseObj]);
+
+    // Reset form
+    setName("");
+    setAmount("");
+    setCategory("");
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Budget Tracker</h1>
+
+      <input
+        type="text"
+        placeholder="Expense Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Category"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+      />
+
+      <button onClick={addExpense}>Add Expense</button>
+
+      <ul>
+        {expenses.map(exp => (
+          <li key={exp.id}>
+            {exp.name} - ${exp.amount} [{exp.category}]
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;
